@@ -1,0 +1,187 @@
+Estrutura do Aplicativo
+1. Arquitetura
+O projeto é desenvolvido com:
+
+React como framework frontend
+TypeScript para tipagem estática
+React Router para navegação
+Tailwind CSS para estilização
+Shadcn/UI para componentes de interface
+React Query para gerenciamento de estado
+date-fns para manipulação de datas
+A arquitetura segue um modelo de contexto para gerenciamento de estado, utilizando o LoanContext como fonte central de dados.
+
+2. Navegação e Layout
+O aplicativo possui um layout consistente com:
+
+Uma barra lateral (Sidebar) para navegação
+Um conteúdo principal que muda conforme a rota
+Um sistema de rotas gerenciado pelo React Router
+3. Principais Rotas e Páginas
+Dashboard (/)
+Visão geral do sistema
+Métricas importantes (principal pendente, juros acumulados, etc.)
+Gráficos de status dos empréstimos
+Empréstimos (/loans)
+Lista completa dos empréstimos
+Filtragem por status e pesquisa
+Ações de edição e exclusão
+Criação de novos empréstimos (/loans/new)
+Detalhes do empréstimo (/loans/:id)
+Edição de empréstimo (/loans/:id/edit)
+Mutuários (/borrowers)
+Lista de todos os mutuários
+Criação de novos mutuários (/borrowers/new)
+Edição de mutuários existentes (/borrowers/:id)
+Pagamentos (/payments)
+Registro de todos os pagamentos
+Filtros por mutuário e data
+Relatórios (/reports)
+Exportação de dados em CSV
+Importação de dados via CSV
+Resumo das métricas financeiras
+Configurações (/settings)
+Preferências do sistema
+Configurações padrão para novos empréstimos
+Modelo de Dados
+1. Tipos Principais (src/types/index.ts)
+Borrower (Mutuário)
+
+- id: string
+- name: string
+- email?: string
+- phone?: string
+Loan (Empréstimo)
+
+- id: string
+- borrowerId: string
+- borrowerName: string
+- principal: number
+- interestRate: number
+- issueDate: string
+- dueDate: string
+- status: 'active' | 'paid' | 'overdue' | 'defaulted'
+- paymentSchedule?: PaymentSchedule
+- notes?: string
+Payment (Pagamento)
+
+- id: string
+- loanId: string
+- date: string
+- amount: number
+- principal: number
+- interest: number
+- notes?: string
+PaymentSchedule (Cronograma de Pagamento)
+
+- frequency: 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom'
+- nextPaymentDate: string
+- installments: number
+- installmentAmount: number
+2. Contexto Principal (src/context/LoanContext.tsx)
+Estado
+borrowers: Lista de mutuários
+loans: Lista de empréstimos
+payments: Lista de pagamentos
+Operações CRUD
+Mutuários: addBorrower, updateBorrower, deleteBorrower
+Empréstimos: addLoan, updateLoan, deleteLoan
+Pagamentos: addPayment, updatePayment, deletePayment
+Operações de Consulta
+getBorrowerById, getLoanById
+getLoansByBorrowerId, getPaymentsByLoanId
+calculateLoanMetrics, getOverdueLoans, getUpcomingDueLoans
+Importação/Exportação de Dados
+importLoansData: Permite importar dados de empréstimos a partir de um CSV
+Lógica de Negócios
+1. Cálculos de Empréstimos (src/utils/loanCalculations.ts)
+Funções Principais
+calculateTotalDue: Calcula o valor total devido (principal + juros)
+calculateRemainingBalance: Calcula o saldo restante após pagamentos
+isLoanOverdue: Verifica se um empréstimo está em atraso
+getDaysOverdue: Calcula dias em atraso
+calculatePaymentDistribution: Distribui pagamento entre principal e juros
+determineNewLoanStatus: Atualiza status do empréstimo com base em pagamentos
+2. Fluxo de Pagamentos
+Um pagamento é registrado via addPayment
+O pagamento é distribuído entre principal e juros
+O status do empréstimo é atualizado automaticamente
+O saldo restante é recalculado
+3. Estados de Empréstimos
+Ativo: Empréstimo em dia
+Pago: Empréstimo totalmente quitado
+Vencido: Empréstimo com pagamento em atraso
+Inadimplente: Empréstimo com mais de 90 dias de atraso
+Funcionalidades Detalhadas por Página
+1. Dashboard
+Exibe métricas-chave como total emprestado, juros acumulados, valor em atraso
+Mostra distribuição de status dos empréstimos
+Lista empréstimos próximos do vencimento
+Exibe empréstimos em atraso
+2. Lista de Empréstimos
+Tabela com todos os empréstimos
+Filtros por status (ativo, pago, vencido, inadimplente)
+Pesquisa por nome do mutuário
+Ações rápidas (editar, excluir)
+Cálculo dinâmico de saldo restante
+3. Detalhes do Empréstimo
+Informações completas do empréstimo
+Cronograma de pagamentos
+Histórico de pagamentos
+Registro de novos pagamentos
+Edição das informações do empréstimo
+4. Formulário de Empréstimo
+Campos para todos os dados do empréstimo
+Seleção do mutuário existente
+Cálculo automático de parcelas
+Validação de dados
+5. Lista de Mutuários
+Tabela com todos os mutuários
+Pesquisa por nome
+Ações rápidas (editar, excluir)
+Indicador de empréstimos ativos
+6. Formulário de Mutuário
+Campos para informações do mutuário
+Validação de dados
+7. Lista de Pagamentos
+Histórico completo de todos os pagamentos
+Filtros por mutuário
+Detalhes da distribuição entre principal e juros
+8. Relatórios
+Resumo geral do portfólio de empréstimos
+Métricas mensais (entrada de caixa)
+Histórico completo de empréstimos
+Exportação de dados para CSV incluindo:
+Dados dos empréstimos
+Dados dos mutuários
+Histórico de pagamentos (serializado como JSON)
+Importação de dados de CSV, permitindo:
+Restaurar dados completos do sistema
+Migrar dados entre instâncias
+9. Configurações
+Definição de taxa de juros padrão
+Configuração de frequência de pagamento padrão
+Número de parcelas padrão
+Seleção de moeda
+Fluxo de Dados e Persistência
+Todos os dados são gerenciados pelo LoanContext
+Os dados atualmente são mockados via mockData.ts
+A exportação/importação via CSV permite persistência manual de dados
+O sistema de importação permite restaurar todos os dados, incluindo:
+Mutuários
+Empréstimos
+Cronogramas de pagamento
+Histórico completo de pagamentos
+Recursos Técnicos
+Responsividade
+Layout adaptável a diferentes tamanhos de tela
+Tabelas com rolagem horizontal em telas pequenas
+Feedback ao Usuário
+Toasts para notificações de sucesso/erro
+Confirmações antes de ações destrutivas
+Formatação
+Valores monetários formatados com R$
+Datas formatadas no padrão brasileiro (dd/mm/aaaa)
+Status visualmente diferenciados por cores
+Conclusão
+O LoanBuddy é um sistema completo para gerenciamento de empréstimos pessoais, oferecendo todas as ferramentas necessárias para controlar mutuários, empréstimos, pagamentos e gerar relatórios detalhados. Sua arquitetura modular e a funcionalidade de importação/exportação garantem flexibilidade e portabilidade dos dados.

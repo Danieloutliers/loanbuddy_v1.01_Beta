@@ -1,0 +1,118 @@
+# Data Export/Import Specification
+
+## 1. Data Source and Destination
+
+*   **Data Source (Export):**
+    *   Database: Supabase PostgreSQL
+    *   Table: `loans`
+    *   Field: `paymentDay`
+
+*   **Data Destination (Import):**
+    *   File: JSON file (loanbuddy_export.json)
+    *   Data structure within the JSON:
+        ```json
+        {
+          "loans": [
+            {
+              "id": "string",
+              "borrowerId": "string",
+              "borrowerName": "string",
+              "principal": number,
+              "interestRate": number,
+              "issueDate": "string",
+              "dueDate": "string",
+              "status": "string",
+              "frequency": "string",
+              "nextPaymentDate": "string",
+              "installments": number,
+              "installmentAmount": number,
+              "notes": "string",
+              "paymentDay": number
+            }
+          ],
+          "borrowers": [],
+          "payments": []
+        }
+        ```
+
+## 2. Data Format
+
+*   The exported data is in JSON format.
+*   Sample of the exported data structure:
+
+```json
+{
+  "loans": [
+    {
+      "id": "1",
+      "borrowerId": "1",
+      "borrowerName": "João Silva",
+      "principal": 3000,
+      "interestRate": 8,
+      "issueDate": "2024-07-22T00:00:00.000Z",
+      "dueDate": "2025-01-22T00:00:00.000Z",
+      "status": "active",
+      "frequency": "monthly",
+      "nextPaymentDate": "2024-08-22T00:00:00.000Z",
+      "installments": 6,
+      "installmentAmount": 530.00,
+      "notes": "Loan for personal expenses",
+      "paymentDay": 22
+    }
+  ],
+  "borrowers": [],
+  "payments": []
+}
+```
+
+## 3. Field Mapping
+
+*   **Field Name:**
+    *   Source: `paymentDay`
+    *   Destination: `paymentDay`
+*   **Data Type:**
+    *   Source: `integer` (PostgreSQL)
+    *   Destination: `number` (JSON)
+*   **Transformations:**
+    *   No transformations are applied. The `paymentDay` integer is directly exported to and imported from the JSON file.
+
+## 4. Verification Steps
+
+1.  **Export Data:**
+    *   Navigate to the "Relatórios" page in the LoanBuddy application.
+    *   Click the "Exportar Tudo" button to export all data to a JSON file.
+2.  **Inspect JSON File:**
+    *   Open the downloaded `loanbuddy_export.json` file in a text editor or JSON viewer.
+    *   Locate the `loans` array.
+    *   For each loan object, verify that the `paymentDay` field exists and contains the correct integer value representing the day of the month for payments.
+3.  **Import Data:**
+    *   Navigate to the "Relatórios" page in the LoanBuddy application.
+    *   Select the `loanbuddy_export.json` file using the import file input.
+    *   Click the "Importar" button to import the data.
+4.  **Verify Data in Application:**
+    *   Navigate to the "Empréstimos" page.
+    *   For each imported loan, verify that the "Dia de Pagamento" field in the loan details matches the value in the imported JSON file.
+
+## 5. Error Handling
+
+*   **Missing `paymentDay` Data During Export:**
+    *   If the `paymentDay` field is missing for a loan in the database, the exported JSON file will contain a `null` or missing `paymentDay` field for that loan.
+    *   The export process should not fail, but a warning message may be logged.
+*   **Invalid `paymentDay` Data During Import:**
+    *   If the `paymentDay` field is missing or invalid (e.g., not an integer or outside the range 1-31) in the imported JSON file, the import process should:
+        *   Log an error message.
+        *   Skip importing that specific loan, or
+        *   Set a default value for the `paymentDay` field (e.g., 1) and continue importing.
+
+## 6. System Architecture
+
+The data export/import process involves the following components:
+
+1.  **Frontend (React Components):**
+    *   "Relatórios" page: Provides the UI for exporting and importing data.
+    *   Functions in `src/utils/format.ts`: Used for formatting and parsing data.
+2.  **Context (src/context/LoanContext.tsx):**
+    *   `exportData()`: Exports data from the application state (borrowers, loans, payments) into a JSON structure.
+    *   `importData()`: Imports data from a JSON structure into the application state.
+3.  **Data Storage (mockData.ts):**
+    *   Currently, the application uses mock data defined in `src/utils/mockData.ts`. In a production environment, this would be replaced with a database (e.g., Supabase PostgreSQL).
